@@ -254,11 +254,16 @@ class OpenAIGenerator:
         self.max_output_tokens = max_output_tokens
 
     def generate(self, prompt: str) -> str:
+        extra: dict = {}
+        if "openrouter" in os.getenv("OPENAI_BASE_URL", ""):
+            # Reasoning models would spend the whole token budget thinking.
+            extra["extra_body"] = {"reasoning": {"enabled": False}}
         response = self.client.responses.create(
             model=self.model,
             input=prompt,
             temperature=0,
             max_output_tokens=self.max_output_tokens,
+            **extra,
         )
         answer = response.output_text.strip()
         if not answer:
